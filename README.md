@@ -1,4 +1,4 @@
-# pdf-converter-4-dify
+# pdf-2-md
 
 PDFファイルをDify RAG用のMarkdownに変換するツール
 
@@ -24,7 +24,7 @@ pip install pymupdf4llm pymupdf
 ## 使用方法
 
 ```
-python pdf-converter-4-dify.py input.pdf -o output_md
+python pdf-2-md.py input.pdf -o output_md
 ```
 
 実行開始時に2つのGUIポップアップが表示されます：
@@ -47,18 +47,18 @@ python pdf-converter-4-dify.py input.pdf -o output_md
 ### バックグラウンドモードでの使用例
 
 ```
-python pdf-converter-4-dify.py input_pdf -o output_md --background -b "SAP Analytics Cloud" -t "SAC,Analytics"
+python pdf-2-md.py input_pdf -o output_md --background -b "SAP Analytics Cloud" -t "SAC,Analytics"
 ```
 
 ## ディレクトリ構成
 
 ```
-pdf-converter-4-dify/
-├── pdf-converter-4-dify.py  # メインスクリプト
+pdf-2-md/
+├── pdf-2-md.py              # メインスクリプト
 ├── common.py                # 共通関数
+├── requirements.txt         # 依存パッケージ
 ├── input_pdf/               # 入力PDF配置
-├── output_md/               # Markdown出力先
-└── README.md
+└── output_md/               # Markdown出力先
 ```
 
 ## 関連ツール

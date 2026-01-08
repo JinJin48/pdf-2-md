@@ -23,18 +23,12 @@ PDFファイルをDify RAG（Retrieval-Augmented Generation）用のMarkdownに�
 ## ディレクトリ構造
 
 ```
-pdf-converter-4-dify/
-├── pdf-converter-4-dify.py  # メインスクリプト
-├── common.py                # 共通関数（設定、ユーティリティ）
-├── input_pdf/               # 入力PDFファイル配置先
-│   └── .gitkeep
-├── output_md/               # 変換後Markdown出力先
-│   └── .gitkeep
-├── requirements.txt         # Python依存関係
-├── run_background.ps1       # バックグラウンド実行用スクリプト
-├── .gitignore
-├── CLAUDE.md                # 本ファイル
-└── README.md
+pdf-2-md/
+├── pdf-2-md.py              # メインスクリプト
+├── common.py                # 共通関数
+├── requirements.txt         # 依存パッケージ
+├── input_pdf/               # 入力PDF配置
+└── output_md/               # Markdown出力先
 ```
 
 ## 技術スタック
@@ -48,7 +42,7 @@ pdf-converter-4-dify/
 
 ### 主要モジュール
 
-**pdf-converter-4-dify.py**
+**pdf-2-md.py**
 - `convert_pdf_to_md()`: PDF→Markdown変換
 - `save_with_yaml()`: YAMLフロントマター付きで保存
 - `main()`: CLI引数処理、バッチ変換
@@ -90,16 +84,13 @@ pdf-converter-4-dify/
 pip install pymupdf4llm pymupdf
 
 # 単一PDF変換
-python pdf-converter-4-dify.py input.pdf -o output_md
+python pdf-2-md.py input.pdf -o output_md
 
 # ディレクトリ一括変換（GUI）
-python pdf-converter-4-dify.py input_pdf/ -o output_md
+python pdf-2-md.py input_pdf/ -o output_md
 
 # バックグラウンドモード（GUIなし）
-python pdf-converter-4-dify.py input_pdf/ --background -b "BookTitle" -t "tag1,tag2"
-
-# PowerShellでバックグラウンド実行
-.\run_background.ps1
+python pdf-2-md.py input_pdf/ --background -b "BookTitle" -t "tag1,tag2"
 ```
 
 ### 出力形式
