@@ -4,21 +4,21 @@
 
 ## プロジェクト概要
 
-PDFファイルをDify RAG（Retrieval-Augmented Generation）用のMarkdownに変換するツール。
+PDFファイルをMarkdownに変換するツール。
 
 ### 主な機能
 
 - PDF→Markdown変換（pymupdf4llm使用）
 - 1 PDF = 1 MDファイルの1対1変換
-- YAMLフロントマター自動付与（タグ、ソース情報）
 - PDFアーティファクト（ページ番号、ヘッダー、フッター等）の自動除去
 - セクション番号に基づくMarkdownヘッダー自動生成
 - 画像抽出・保存
+- 既存のYAMLメタデータファイル（.yaml）があれば引き継ぎ
 
 ### 用途
 
-- Difyナレッジベースへの取り込み用にPDFを構造化Markdownに変換
-- 技術書籍・マニュアルのRAG対応フォーマット化
+- PDFを構造化Markdownに変換
+- 技術書籍・マニュアルのMarkdown化
 
 ## ディレクトリ構造
 
@@ -38,13 +38,13 @@ pdf-2-md/
 | Python | 3.10+ | メイン言語 |
 | pymupdf4llm | 0.0.5+ | PDF→Markdown変換 |
 | PyMuPDF | 1.23.0+ | PDF解析エンジン |
-| tkinter | 標準 | GUIダイアログ |
 
 ### 主要モジュール
 
 **pdf-2-md.py**
 - `convert_pdf_to_md()`: PDF→Markdown変換
-- `save_with_yaml()`: YAMLフロントマター付きで保存
+- `load_existing_yaml()`: 既存のYAMLメタデータファイルを読み込み
+- `save_md()`: Markdownファイルを保存
 - `main()`: CLI引数処理、バッチ変換
 
 **common.py**
@@ -52,19 +52,18 @@ pdf-2-md/
 - `estimate_time()`: 残り時間推定
 - `remove_pdf_artifacts()`: PDFアーティファクト除去
 - `add_headers_by_pattern()`: セクション番号からヘッダー生成
-- `get_yaml_header()`: YAMLフロントマター生成
+- `clean_filename()`: ファイル名のサニタイズ
 
 ## 現在の開発状況
 
 ### 完了済み
 
 - 基本的なPDF→Markdown変換
-- YAMLフロントマター生成
 - PDFアーティファクト除去（ページ番号、著作権表示等）
 - セクション番号パターンからのヘッダー自動生成
 - 画像抽出・保存
-- バックグラウンドモード対応
 - 進捗推定・ロギング
+- 既存YAMLメタデータファイルの引き継ぎ
 
 ### 既知の課題
 
@@ -86,26 +85,17 @@ pip install pymupdf4llm pymupdf
 # 単一PDF変換
 python pdf-2-md.py input.pdf -o output_md
 
-# ディレクトリ一括変換（GUI）
+# ディレクトリ一括変換
 python pdf-2-md.py input_pdf/ -o output_md
-
-# バックグラウンドモード（GUIなし）
-python pdf-2-md.py input_pdf/ --background -b "BookTitle" -t "tag1,tag2"
 ```
 
-### 出力形式
+### YAMLメタデータの引き継ぎ
 
-変換後のMarkdownファイルには以下のYAMLフロントマターが付与されます：
+PDFと同名の `.yaml` ファイルが存在する場合、その内容が出力MDの先頭に付与されます。
 
-```yaml
----
-tags:
-  - tag1
-  - tag2
-source: filename.pdf
-title: filename
----
-```
+例:
+- 入力: `document.pdf`, `document.yaml`
+- 出力: `document.md`（先頭にdocument.yamlの内容が付与）
 
 ### ログ
 

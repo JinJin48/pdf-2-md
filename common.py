@@ -46,23 +46,6 @@ def clean_filename(name):
     return re.sub(r'[\\/*?:"<>|]', "", name)
 
 
-def get_yaml_header(tags, source, chapter, title):
-    """Generate YAML frontmatter."""
-    tag_list = [t.strip() for t in tags.split(",") if t.strip()]
-
-    yaml = "---\n"
-    yaml += "tags:\n"
-    for t in tag_list:
-        yaml += f"  - {t}\n"
-    yaml += f"source: {source}\n"
-    if chapter:
-        yaml += f"chapter: {chapter}\n"
-    if title:
-        yaml += f"title: {title}\n"
-    yaml += "---\n\n"
-    return yaml
-
-
 def remove_pdf_artifacts(md_text):
     """
     Remove PDF artifacts from markdown text:

@@ -1,16 +1,13 @@
 #!/usr/bin/env python3
 """
-PDF to Dify-ready Markdown Converter
+PDF to Markdown Converter
 
-Converts PDF files to structured Markdown with YAML frontmatter,
-optimized for Dify knowledge base ingestion.
+Converts PDF files to structured Markdown.
 
 Usage:
-    python pdf-converter-4-dify.py                    # Process all PDFs in input_pdf/
-    python pdf-converter-4-dify.py document.pdf      # Process a single PDF
-    python pdf-converter-4-dify.py -t "tag1,tag2"    # Specify tags
-    python pdf-converter-4-dify.py --background      # Run without GUI prompts
-    python pdf-converter-4-dify.py --background -b "SAP_Analytics_Cloud"  # With book title
+    python pdf-2-md.py                    # Process all PDFs in input_pdf/
+    python pdf-2-md.py document.pdf       # Process a single PDF
+    python pdf-2-md.py -o output_dir      # Specify output directory
 """
 
 import os
@@ -20,14 +17,12 @@ import argparse
 import logging
 import gc
 import time
-import tkinter as tk
-from tkinter import simpledialog
 from pathlib import Path
 import pymupdf4llm
 
 from common import (
     INPUT_DIR, OUTPUT_DIR,
-    setup_logging, estimate_time, clean_filename, get_yaml_header,
+    setup_logging, estimate_time, clean_filename,
     remove_pdf_artifacts, add_headers_by_pattern
 )
 
@@ -61,16 +56,31 @@ def convert_pdf_to_md(pdf_path, temp_output_dir):
         return False
 
 
-def save_with_yaml(content, pdf_name, tags, output_dir, book_title=""):
-    """Save markdown content with YAML frontmatter (1 PDF = 1 MD file)."""
-    yaml_header = get_yaml_header(tags, pdf_name + ".pdf", "", pdf_name)
-    full_content = yaml_header + content
+def load_existing_yaml(pdf_path):
+    """Load existing YAML metadata file if it exists alongside the PDF."""
+    yaml_path = pdf_path.with_suffix('.yaml')
+    if yaml_path.exists():
+        try:
+            with open(yaml_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+            logging.info(f"Found existing YAML metadata: {yaml_path}")
+            return content
+        except Exception as e:
+            logging.warning(f"Failed to read YAML file {yaml_path}: {e}")
+    return None
 
-    # Add book title prefix if provided
-    if book_title:
-        fname = f"{book_title}_{pdf_name}.md"
+
+def save_md(content, pdf_name, output_dir, yaml_content=None):
+    """Save markdown content (with optional existing YAML frontmatter)."""
+    if yaml_content:
+        # Ensure YAML content ends with newlines for proper separation
+        if not yaml_content.endswith('\n\n'):
+            yaml_content = yaml_content.rstrip('\n') + '\n\n'
+        full_content = yaml_content + content
     else:
-        fname = f"{pdf_name}.md"
+        full_content = content
+
+    fname = f"{pdf_name}.md"
     fname = clean_filename(fname)
 
     out_path = Path(output_dir) / fname
@@ -79,52 +89,13 @@ def save_with_yaml(content, pdf_name, tags, output_dir, book_title=""):
     logging.info(f"Saved: {out_path}")
 
 
-def get_book_title_from_user(background_mode=False):
-    """Popup GUI to get book title (called once at start)."""
-    if background_mode:
-        logging.info("Background mode: Skipping book title input.")
-        return ""
-
-    root = tk.Tk()
-    root.withdraw()
-
-    book_title = simpledialog.askstring(
-        "Book Title Input",
-        "Enter the book title (will be prefixed to all output files):\nExample: SAP_Analytics_Cloud"
-    )
-
-    root.destroy()
-    return book_title if book_title else ""
-
-
-def get_tags_from_user(background_mode=False):
-    """Popup GUI to get tags (called once at start)."""
-    if background_mode:
-        logging.info("Background mode: Skipping tags input (using default/empty).")
-        return ""
-
-    root = tk.Tk()
-    root.withdraw()
-
-    tags = simpledialog.askstring(
-        "Metadata Input",
-        "Enter tags for all PDFs (comma separated):\nExample: SAC, Analytics, BW"
-    )
-
-    root.destroy()
-    return tags if tags else ""
-
-
 def main():
-    parser = argparse.ArgumentParser(description="PDF to Dify-ready Markdown Converter")
+    parser = argparse.ArgumentParser(description="PDF to Markdown Converter")
     parser.add_argument("pdf", nargs="?", help="Path to PDF file or directory (optional, uses input_pdf/ if not specified)")
     parser.add_argument("-o", "--output", default=OUTPUT_DIR, help="Output directory for markdown files")
-    parser.add_argument("-t", "--tags", default="", help="Tags for metadata (comma separated)")
-    parser.add_argument("-b", "--book", default="", help="Book title to prefix all output filenames")
-    parser.add_argument("--background", action="store_true", help="Run in background mode (no GUI prompts)")
     args = parser.parse_args()
 
-    setup_logging(args.background)
+    setup_logging(background_mode=False)
     logging.info("=== PDF to Markdown Converter Started ===")
 
     output_dir = Path(args.output)
@@ -145,18 +116,6 @@ def main():
     if not pdfs:
         logging.warning("No PDFs found to process.")
         return
-
-    # Get book title once at the start (applies to all PDFs)
-    if args.book:
-        book_title = args.book
-    else:
-        book_title = get_book_title_from_user(args.background)
-
-    # Get tags once at the start (applies to all PDFs)
-    if args.tags:
-        tags = args.tags
-    else:
-        tags = get_tags_from_user(args.background)
 
     start_time = time.time()
     processed_count = 0
@@ -206,8 +165,11 @@ def main():
                 shutil.copy(img, dest_img)
                 processed_content = processed_content.replace(img.name, f"images/{new_img_name}")
 
-        # Save as single MD file with YAML frontmatter
-        save_with_yaml(processed_content, name, tags, output_dir, book_title)
+        # Load existing YAML metadata if available
+        yaml_content = load_existing_yaml(pdf)
+
+        # Save as single MD file
+        save_md(processed_content, name, output_dir, yaml_content)
         logging.info(f"Finished processing {name}")
 
         if temp_dir.exists():

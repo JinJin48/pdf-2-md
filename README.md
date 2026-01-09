@@ -1,13 +1,13 @@
 # pdf-2-md
 
-PDFファイルをDify RAG用のMarkdownに変換するツール
+PDFファイルをMarkdownに変換するツール
 
 ## 機能
 
 - PDFをMarkdownに変換（pymupdf4llm使用）
 - 1つのPDFから1つのMDファイルを出力（1対1変換）
-- YAMLフロントマター自動付与（タグ、ソース情報）
 - PDFアーティファクト（ページ番号、ヘッダー等）の自動除去
+- 既存のYAMLメタデータファイル（.yaml）があれば引き継ぎ
 
 ## 必要環境
 
@@ -23,32 +23,28 @@ pip install pymupdf4llm pymupdf
 
 ## 使用方法
 
-```
+```bash
+# 単一PDF変換
 python pdf-2-md.py input.pdf -o output_md
+
+# ディレクトリ一括変換
+python pdf-2-md.py input_pdf/ -o output_md
+
+# input_pdf/ ディレクトリのPDFを一括変換（デフォルト）
+python pdf-2-md.py
 ```
-
-実行開始時に2つのGUIポップアップが表示されます：
-1. **本のタイトル入力** - 出力ファイル名の先頭に付与されるプレフィックス（例: SAP Analytics Cloud）
-2. **タグ入力** - すべてのPDFに一括適用されるタグ（例: SAC, Analytics, BW）
-
-### 出力ファイル名の例
-
-- 入力: `007_1.2 SAP's Data and Analytics Strategy.pdf`
-- 本のタイトル: `SAP Analytics Cloud`
-- 出力: `SAP Analytics Cloud_007_1.2 SAP's Data and Analytics Strategy.md`
 
 ### オプション
 
 - `-o`, `--output`: 出力ディレクトリ（デフォルト: output_md）
-- `-t`, `--tags`: タグをコマンドラインで指定（GUIをスキップ）
-- `-b`, `--book`: 本のタイトルをコマンドラインで指定（GUIをスキップ）
-- `--background`: バックグラウンドモード（GUIなし）
 
-### バックグラウンドモードでの使用例
+### YAMLメタデータの引き継ぎ
 
-```
-python pdf-2-md.py input_pdf -o output_md --background -b "SAP Analytics Cloud" -t "SAC,Analytics"
-```
+PDFと同名の `.yaml` ファイルが存在する場合、その内容が出力MDの先頭に付与されます。
+
+例:
+- 入力: `document.pdf`, `document.yaml`
+- 出力: `document.md`（先頭にdocument.yamlの内容が付与）
 
 ## ディレクトリ構成
 
